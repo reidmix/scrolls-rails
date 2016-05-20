@@ -20,7 +20,14 @@ module Scrolls
           # e.message. Adding handling for this case here.
           if exception.is_a?(Array)
             exception_class_name, exception_message = exception
-            exception = exception_class_name.constantize.new(exception_message)
+            exception =
+              begin
+                # try to use the supplied exception
+                exception_class_name.constantize.new(exception_message)
+              rescue
+                # default to standard error, the arity was wrong
+                StandardError.new(exception.join(": "))
+              end
           end
 
           Scrolls.log_exception({status: 500}, exception)
